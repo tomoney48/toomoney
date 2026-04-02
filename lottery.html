@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>제일복권</title>
+
+<style>
+  body {
+    margin:0;
+    font-family:sans-serif;
+    background:#000;
+    color:white;
+    text-align:center;
+  }
+
+  .screen { display:none; }
+  .active { display:block; }
+
+  button {
+    padding:10px 20px;
+    margin:5px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  }
+
+  .remain-box {
+    position:fixed;
+    right:20px;
+    top:20px;
+    background:#111;
+    padding:15px 20px;
+    border-radius:10px;
+    font-size:20px;
+    box-shadow:0 0 10px rgba(255,255,255,0.2);
+  }
+
+  .grid {
+    display:grid;
+    grid-template-columns:repeat(10, 80px);
+    gap:12px;
+    justify-content:center;
+    margin-top:20px;
+  }
+
+  .box {
+    width:80px;
+    height:80px;
+    background:white;
+    color:black;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    font-size:20px;
+    cursor:pointer;
+  }
+
+  .used { pointer-events:none; }
+
+  .card {
+    width:900px;
+    height:450px;
+    margin:auto;
+    margin-top:180px;
+    position:relative;
+  }
+
+  .result {
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:120px;
+    font-weight:bold;
+  }
+
+  .cover {
+    position:absolute;
+    width:100%;
+    height:100%;
+    cursor:pointer;
+  }
+
+  .cover img {
+    width:100%;
+    height:100%;
+    transition: transform 0.7s ease, opacity 0.7s;
+  }
+
+  .opened img {
+    transform: translateX(100%);
+    opacity:0;
+  }
+
+  .firework {
+    position:absolute;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    animation: explode 1s ease-out forwards;
+  }
+
+  @keyframes explode {
+    0% { transform:translate(0,0); opacity:1; }
+    100% { transform:translate(var(--x), var(--y)); opacity:0; }
+  }
+</style>
+
+</head>
+
+<body>
+
+<div class="remain-box">
+  남은 개수: <span id="remain">100</span>
+</div>
+
+<div id="selectScreen" class="screen active">
+  <h1>🎁 제일복권</h1>
+  <button onclick="randomPick()">🎲 랜덤 선택</button>
+  <button onclick="goFull()">📺 전체화면</button>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="drawScreen" class="screen">
+  <h1>🎟️ 복권을 뜯어보세요</h1>
+
+  <div style="height:120px;"></div>
+
+  <div class="card">
+    <div class="result" id="result"></div>
+
+    <div class="cover" id="cover">
+      <img src="cover.png">
+    </div>
+  </div>
+
+  <button onclick="goBack()">다시 뽑기</button>
+</div>
+
+<script>
+let prizes = [
+  "S",
+  "A",
+  "B","B",
+  "C","C",
+  "D","D",
+  "E","E",
+  "F","F",
+  ...Array(88).fill("꽝")
+];
+
+prizes.sort(() => Math.random() - 0.5);
+
+const grid = document.getElementById("grid");
+let boxes = [];
+let remain = 100;
+let exploded = false;
+
+for (let i = 0; i < 100; i++) {
+  let box = document.createElement("div");
+  box.className = "box";
+  box.innerText = i + 1;
+
+  box.onclick = () => pick(box, i);
+
+  boxes.push(box);
+  grid.appendChild(box);
+}
+
+function pick(box, i) {
+  let result = prizes[i];
+
+  box.innerText = result;
+  box.classList.add("used");
+
+  if(result === "S") box.style.background = "gold";
+  else if(result === "A") box.style.background = "#ff7675";
+  else if(result === "B") box.style.background = "#74b9ff";
+  else if(result === "C") box.style.background = "#55efc4";
+  else if(result === "D") box.style.background = "#ffeaa7";
+  else if(result === "E") box.style.background = "#fab1a0";
+  else if(result === "F") box.style.background = "#dfe6e9";
+  else box.style.background = "#2d3436";
+
+  // 남은 개수 감소
+  remain--;
+  document.getElementById("remain").innerText = remain;
+
+  document.getElementById("selectScreen").classList.remove("active");
+  document.getElementById("drawScreen").classList.add("active");
+
+  let resultEl = document.getElementById("result");
+
+  // ⭐ 라스트원 기능
+  if (remain === 0) {
+    resultEl.innerText = "🎉 LAST! 🎉";
+    resultEl.style.color = "gold";
+  } else {
+    resultEl.innerText = result;
+
+    if(result === "S") resultEl.style.color = "gold";
+    else if(result === "A") resultEl.style.color = "#ff7675";
+    else if(result === "B") resultEl.style.color = "#74b9ff";
+    else if(result === "C") resultEl.style.color = "#55efc4";
+    else resultEl.style.color = "white";
+  }
+
+  let cover = document.getElementById("cover");
+  cover.classList.remove("opened");
+  exploded = false;
+
+  cover.onclick = function() {
+    cover.classList.add("opened");
+
+    if (!exploded) {
+      exploded = true;
+
+      for (let i = 0; i < 60; i++) {
+        let fw = document.createElement("div");
+        fw.className = "firework";
+
+        fw.style.left = "50%";
+        fw.style.top = "50%";
+
+        fw.style.setProperty("--x", (Math.random()*800-400)+"px");
+        fw.style.setProperty("--y", (Math.random()*800-400)+"px");
+
+        fw.style.background = `hsl(${Math.random()*360},100%,50%)`;
+
+        document.body.appendChild(fw);
+        setTimeout(() => fw.remove(), 1000);
+      }
+    }
+  };
+}
+
+function randomPick() {
+  let available = boxes.filter(b => !b.classList.contains("used"));
+  if (available.length === 0) return;
+
+  let randomBox = available[Math.floor(Math.random()*available.length)];
+  randomBox.click();
+}
+
+function goFull() {
+  document.documentElement.requestFullscreen();
+}
+
+function goBack() {
+  document.getElementById("drawScreen").classList.remove("active");
+  document.getElementById("selectScreen").classList.add("active");
+}
+</script>
+
+</body>
+</html>

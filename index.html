@@ -25,6 +25,7 @@
     cursor:pointer;
   }
 
+  /* 남은 개수 */
   .remain-box {
     position:fixed;
     right:20px;
@@ -36,6 +37,7 @@
     box-shadow:0 0 10px rgba(255,255,255,0.2);
   }
 
+  /* 선택 화면 */
   .grid {
     display:grid;
     grid-template-columns:repeat(10, 80px);
@@ -60,6 +62,7 @@
 
   .used { pointer-events:none; }
 
+  /* 복권 */
   .card {
     width:900px;
     height:450px;
@@ -116,10 +119,12 @@
 
 <body>
 
+<!-- 남은 개수 -->
 <div class="remain-box">
   남은 개수: <span id="remain">100</span>
 </div>
 
+<!-- 선택 화면 -->
 <div id="selectScreen" class="screen active">
   <h1>🎁 제일복권</h1>
   <button onclick="randomPick()">🎲 랜덤 선택</button>
@@ -127,9 +132,12 @@
   <div class="grid" id="grid"></div>
 </div>
 
+<!-- 뜯기 화면 -->
 <div id="drawScreen" class="screen">
+
   <h1>🎟️ 복권을 뜯어보세요</h1>
 
+  <!-- 위쪽 여백 (상품 이미지 자리용) -->
   <div style="height:120px;"></div>
 
   <div class="card">
@@ -141,9 +149,11 @@
   </div>
 
   <button onclick="goBack()">다시 뽑기</button>
+
 </div>
 
 <script>
+// 🎯 상품 구성
 let prizes = [
   "S",
   "A",
@@ -152,7 +162,11 @@ let prizes = [
   "D","D",
   "E","E",
   "F","F",
-  ...Array(88).fill("꽝")
+  "G","G","G","G",
+  "H","H","H","H",
+  "I","I","I","I",
+  "J","J","J","J",
+  ...Array(72).fill("K") // ⭐ 수정 완료
 ];
 
 prizes.sort(() => Math.random() - 0.5);
@@ -179,6 +193,7 @@ function pick(box, i) {
   box.innerText = result;
   box.classList.add("used");
 
+  // 색상
   if(result === "S") box.style.background = "gold";
   else if(result === "A") box.style.background = "#ff7675";
   else if(result === "B") box.style.background = "#74b9ff";
@@ -186,9 +201,13 @@ function pick(box, i) {
   else if(result === "D") box.style.background = "#ffeaa7";
   else if(result === "E") box.style.background = "#fab1a0";
   else if(result === "F") box.style.background = "#dfe6e9";
-  else box.style.background = "#2d3436";
+  else if(result === "G") box.style.background = "#a29bfe";
+  else if(result === "H") box.style.background = "#81ecec";
+  else if(result === "I") box.style.background = "#fab1a0";
+  else if(result === "J") box.style.background = "#ffeaa7";
+  else box.style.background = "#636e72"; // K
 
-  // 남은 개수 감소
+  // 남은 개수
   remain--;
   document.getElementById("remain").innerText = remain;
 
@@ -196,20 +215,14 @@ function pick(box, i) {
   document.getElementById("drawScreen").classList.add("active");
 
   let resultEl = document.getElementById("result");
+  resultEl.innerText = result;
 
-  // ⭐ 라스트원 기능
-  if (remain === 0) {
-    resultEl.innerText = "🎉 LAST! 🎉";
-    resultEl.style.color = "gold";
-  } else {
-    resultEl.innerText = result;
-
-    if(result === "S") resultEl.style.color = "gold";
-    else if(result === "A") resultEl.style.color = "#ff7675";
-    else if(result === "B") resultEl.style.color = "#74b9ff";
-    else if(result === "C") resultEl.style.color = "#55efc4";
-    else resultEl.style.color = "white";
-  }
+  // 텍스트 색
+  if(result === "S") resultEl.style.color = "gold";
+  else if(result === "A") resultEl.style.color = "#ff7675";
+  else if(result === "B") resultEl.style.color = "#74b9ff";
+  else if(result === "C") resultEl.style.color = "#55efc4";
+  else resultEl.style.color = "white";
 
   let cover = document.getElementById("cover");
   cover.classList.remove("opened");
